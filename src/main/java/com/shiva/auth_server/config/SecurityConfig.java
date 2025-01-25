@@ -71,15 +71,15 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Bean
-    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-        UserDetails userDetails = User.withUsername("user")
-            .password(passwordEncoder.encode("password"))
-            .roles("USER")
-            .build();
+    // @Bean
+    // public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
+    //     UserDetails userDetails = User.withUsername("user")
+    //         .password(passwordEncoder.encode("password"))
+    //         .roles("USER")
+    //         .build();
 
-        return new InMemoryUserDetailsManager(userDetails);
-    }
+    //     return new InMemoryUserDetailsManager(userDetails);
+    // }
 
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
