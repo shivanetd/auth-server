@@ -30,6 +30,7 @@ public class ClientRegistrationController {
             .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
             .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
             .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+            .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
             .redirectUri(request.redirectUri())
             .clientIdIssuedAt(Instant.now())
             .clientName(request.clientName())

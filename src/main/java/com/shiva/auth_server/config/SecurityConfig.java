@@ -10,6 +10,7 @@ import java.util.UUID;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.Ordered;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,6 +19,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
@@ -107,9 +110,24 @@ public class SecurityConfig {
         return keyPair;
     }
 
+    // @Bean
+    // public PasswordEncoder passwordEncoder() {
+    //     return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
+    // }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
+        return new PasswordEncoder() {
+            @Override
+            public String encode(CharSequence rawPassword) {
+                return rawPassword.toString();
+            }
+
+            @Override
+            public boolean matches(CharSequence rawPassword, String encodedPassword) {
+                return rawPassword.toString().equals(encodedPassword);
+            }
+        };
     }
 
 
@@ -122,6 +140,26 @@ public class SecurityConfig {
             .withExpiresAt(new Date(System.currentTimeMillis() + 86400000)) // 24 hours
             .withJWTId(UUID.randomUUID().toString())
             .sign(jwtAlgorithm());
+    }
+
+
+    @Bean
+    public CommandLineRunner debugClientConfiguration(RegisteredClientRepository repository){
+        return args -> {
+            try {
+                RegisteredClient client = repository.findByClientId("my-client-app");
+                if (client != null) {
+                    System.out.println("Client Details:");
+                    System.out.println("Client ID: " + client.getClientId());
+                    System.out.println("Authentication Methods: " + client.getClientAuthenticationMethods());
+                    System.out.println("Grant Types: " + client.getAuthorizationGrantTypes());
+                } else {
+                    System.out.println("No client found with ID: client-credentials-client");
+                }
+            } catch (Exception e) {
+                System.err.println("Error retrieving client: " + e.getMessage());
+            }
+        };
     }
 
 }
