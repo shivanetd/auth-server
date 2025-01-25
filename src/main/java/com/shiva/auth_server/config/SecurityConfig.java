@@ -17,8 +17,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
@@ -30,20 +33,19 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.shiva.auth_server.service.JwtKeyService;
 
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private RSAPrivateKey privateKey;
-    private RSAPublicKey publicKey;
+    private final JwtKeyService jwtKeyService;
 
-    public SecurityConfig(){
-        KeyPair keyPair = generateRsaKey();
-        privateKey = (RSAPrivateKey) keyPair.getPrivate();
-        publicKey = (RSAPublicKey) keyPair.getPublic();
+    public SecurityConfig(JwtKeyService jwtKeyService) {
+        this.jwtKeyService = jwtKeyService;
     }
+
 
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -92,22 +94,21 @@ public class SecurityConfig {
             .build();
     }
 
+    // @Bean
+    // public Algorithm jwtAlgorithm() {
+    //     return Algorithm.RSA256(publicKey, privateKey);
+    // }
+
+
     @Bean
     public Algorithm jwtAlgorithm() {
-        return Algorithm.RSA256(publicKey, privateKey);
+        KeyPair keyPair = jwtKeyService.getOrCreateKeyPair();
+        return Algorithm.RSA256((RSAPublicKey) keyPair.getPublic(), (RSAPrivateKey) keyPair.getPrivate());
     }
 
-    private static KeyPair generateRsaKey(){
-        KeyPair keyPair;
-
-        try{
-            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA"); 
-            generator.initialize(2048);
-            keyPair = generator.generateKeyPair();
-        } catch(Exception ex){
-            throw new IllegalStateException(ex);
-        }
-        return keyPair;
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        return NimbusJwtDecoder.withPublicKey((RSAPublicKey) jwtKeyService.getOrCreateKeyPair().getPublic()).build();
     }
 
     // @Bean
