@@ -15,10 +15,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -46,7 +42,6 @@ public class SecurityConfig {
         this.jwtKeyService = jwtKeyService;
     }
 
-
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception{
@@ -65,13 +60,15 @@ public class SecurityConfig {
 
     }
 
+
     @Bean
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/login/**").permitAll()
-                .anyRequest().anonymous()
+                .requestMatchers("/login").permitAll()
+                .requestMatchers("/oauth2/authorize").permitAll()
+                .anyRequest().authenticated()
             )
             .formLogin(Customizer.withDefaults());
     
