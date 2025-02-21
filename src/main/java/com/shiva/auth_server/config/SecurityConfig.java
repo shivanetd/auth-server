@@ -68,6 +68,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/login").permitAll()
                 .requestMatchers("/oauth2/authorize").permitAll()
+                .requestMatchers("/oauth2/token").permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(Customizer.withDefaults());
